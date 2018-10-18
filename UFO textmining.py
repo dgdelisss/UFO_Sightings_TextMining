@@ -22,8 +22,8 @@ A short in-class presentation of our findings, discussions of their meaning, and
 """
 
 #installs any packages not available by default
-!pip install gensim
-!pip install wordcloud
+#!pip install gensim
+#!pip install wordcloud
 # %time
 
 #importing packages neeeded for Text Analysis
@@ -34,7 +34,7 @@ import sklearn
 import gensim
 import re
 import string
-import wordcloud
+#import wordcloud
 import os
 # %time
 
@@ -49,7 +49,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.manifold import MDS
 from sklearn.metrics.pairwise import cosine_similarity
 #Other specific useful packages
-from wordcloud import WordCloud
+#from wordcloud import WordCloud
 from collections import Counter
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet as wn
@@ -127,23 +127,23 @@ def lemmatizer(term_vec):
 
 ##Basic Word Cloud Function
 
-def show_wordcloud(data, title = None):
-    wordcloud = WordCloud(
-        background_color='white',
-        max_words=50,
-        max_font_size=40, 
-        scale=3,
-        random_state=1 # chosen at random by flipping a coin; it was heads
-    ).generate(str(data))
-
-    fig = plt.figure(1, figsize=(12, 12))
-    plt.axis('off')
-    if title: 
-        fig.suptitle(title, fontsize=20)
-        fig.subplots_adjust(top=2.3)
-
-    plt.imshow(wordcloud)
-    plt.show()
+#def show_wordcloud(data, title = None):
+#    wordcloud = WordCloud(
+#        background_color='white',
+#        max_words=50,
+#        max_font_size=40, 
+#        scale=3,
+#        random_state=1 # chosen at random by flipping a coin; it was heads
+#    ).generate(str(data))
+#
+#    fig = plt.figure(1, figsize=(12, 12))
+#    plt.axis('off')
+#    if title: 
+#        fig.suptitle(title, fontsize=20)
+#        fig.subplots_adjust(top=2.3)
+#
+#    plt.imshow(wordcloud)
+#    plt.show()
 
 """# Initial Data Importation and Cleaning:"""
 
@@ -157,20 +157,20 @@ subset_ufoset = ufoset.loc[ufoset['state'].isin(states)]
 encounters = subset_ufoset[['text','state']]
 
 #New datasets for each state
-CA_encounters = encounters.loc[ufoset['state'] == "CA"]
-NV_encounters = encounters.loc[ufoset['state'] == "NV"]
-AR_encounters = encounters.loc[ufoset['state'] == "AR"]
-NM_encounters = encounters.loc[ufoset['state'] == "NM"]
-NC_encounters = encounters.loc[ufoset['state'] == "NC"]
+#CA_encounters = encounters.loc[ufoset['state'] == "CA"]
+#NV_encounters = encounters.loc[ufoset['state'] == "NV"]
+#AR_encounters = encounters.loc[ufoset['state'] == "AR"]
+#NM_encounters = encounters.loc[ufoset['state'] == "NM"]
+#NC_encounters = encounters.loc[ufoset['state'] == "NC"]
 
 #Word Vectors
-All_States = ufoset['text'].values.tolist()
+#All_States = ufoset['text'].values.tolist()
 SelectStates_vect = encounters['text'].values.tolist()
-CA_vect = CA_encounters['text'].values.tolist()
-NV_vect = NV_encounters['text'].values.tolist()
-AR_vect = AR_encounters['text'].values.tolist()
-NM_vect = NM_encounters['text'].values.tolist()
-NC_vect = NC_encounters['text'].values.tolist()
+#CA_vect = CA_encounters['text'].values.tolist()
+#NV_vect = NV_encounters['text'].values.tolist()
+#AR_vect = AR_encounters['text'].values.tolist()
+#NM_vect = NM_encounters['text'].values.tolist()
+#NC_vect = NC_encounters['text'].values.tolist()
 
 print("Lists created.")
 # %time
@@ -179,13 +179,13 @@ print("Lists created.")
 
 #Creates Term Vectors for all word vectors
 
-All_term = Term_Vectors(All_States)
+#All_term = Term_Vectors(All_States)
 SelectStates_term = Term_Vectors(SelectStates_vect)
-CA_term = Term_Vectors(CA_vect)
-NV_term = Term_Vectors(NV_vect)
-AR_term =Term_Vectors(AR_vect)
-NM_term =Term_Vectors(NM_vect)
-NC_term =Term_Vectors(NC_vect)
+#CA_term = Term_Vectors(CA_vect)
+#NV_term = Term_Vectors(NV_vect)
+#AR_term =Term_Vectors(AR_vect)
+#NM_term =Term_Vectors(NM_vect)
+#NC_term =Term_Vectors(NC_vect)
 
 print("Term Vectors  Complete.")
 # %time
@@ -198,13 +198,13 @@ print("Stop Words Created.")
 # %time
 
 #Stop Word filter for all Vectors
-All_stop = Stop_Word(All_term,stopword)
+#All_stop = Stop_Word(All_term,stopword)
 SelectStates_stop = Stop_Word(SelectStates_term,stopword)
-CA_stop = Stop_Word(CA_term,stopword)
-NV_stop = Stop_Word(NV_term,stopword)
-AR_stop = Stop_Word(AR_term,stopword)
-NM_stop = Stop_Word(NM_term,stopword)
-NC_stop = Stop_Word(NC_term,stopword)
+#CA_stop = Stop_Word(CA_term,stopword)
+#NV_stop = Stop_Word(NV_term,stopword)
+#AR_stop = Stop_Word(AR_term,stopword)
+#NM_stop = Stop_Word(NM_term,stopword)
+#NC_stop = Stop_Word(NC_term,stopword)
 
 print("Stop Words filter Applied to Term Vectors.")
 # %time
@@ -212,13 +212,13 @@ print("Stop Words filter Applied to Term Vectors.")
 #Lemmatizing for All Vectors
 #Results look way cleaner than porter stemming
 
-All_lem = lemmatizer(All_stop)
+#All_lem = lemmatizer(All_stop)
 SelectStates_lem = lemmatizer(SelectStates_stop)
-CA_lem = lemmatizer(CA_stop)
-NV_lem = lemmatizer(NV_stop)
-AR_lem = lemmatizer(AR_stop)
-NM_lem = lemmatizer(NM_stop)
-NC_lem = lemmatizer(NC_stop)
+#CA_lem = lemmatizer(CA_stop)
+#NV_lem = lemmatizer(NV_stop)
+#AR_lem = lemmatizer(AR_stop)
+#NM_lem = lemmatizer(NM_stop)
+#NC_lem = lemmatizer(NC_stop)
 
 print("Lemmatization Complete.")
 # %time
@@ -226,13 +226,13 @@ print("Lemmatization Complete.")
 #Will probably need to refilter the vectors after stemming - not sure how much filter terms are needed yet
 nextfilter = ["'","-","look","saw","like","seen","see","could","would","also","got","said","seem","go","well","even"]
 
-All_filt = Stop_Word(All_lem,nextfilter)
+#All_filt = Stop_Word(All_lem,nextfilter)
 SelectStates_filt = Stop_Word(SelectStates_lem,nextfilter)
-CA_filt = Stop_Word(CA_lem,nextfilter)
-NV_filt = Stop_Word(NV_lem,nextfilter)
-AR_filt = Stop_Word(AR_lem,nextfilter)
-NM_filt = Stop_Word(NM_lem,nextfilter)
-NC_filt = Stop_Word(NC_lem,nextfilter)
+#CA_filt = Stop_Word(CA_lem,nextfilter)
+#NV_filt = Stop_Word(NV_lem,nextfilter)
+#AR_filt = Stop_Word(AR_lem,nextfilter)
+#NM_filt = Stop_Word(NM_lem,nextfilter)
+#NC_filt = Stop_Word(NC_lem,nextfilter)
 
 print("Text Filtering Complete")
 # %time
@@ -252,27 +252,28 @@ print("Vocab Vectors Complete")
 
 """#tfidf Vectorization & K-Means Clustering"""
 
-All_tfidf = TfidfVectorizer(All_filt, decode_error = "replace")
-SelectStates_tfidf = TfidfVectorizer(SelectStates_filt, decode_error = "replace")
-CA_tfidf = TfidfVectorizer(CA_filt, decode_error = "replace")
-NV_tfidf = TfidfVectorizer(NV_filt, decode_error = "replace")
-AR_tfidf = TfidfVectorizer(AR_filt, decode_error = "replace")
-NM_tfidf = TfidfVectorizer(NM_filt, decode_error = "replace")
-NC_tfidf = TfidfVectorizer(NC_filt, decode_error = "replace")
+#All_tfidf = TfidfVectorizer(All_filt, max_features = 10000, decode_error = "replace", max_df=.9,min_df=.10)
+SelectStates_tfidf = TfidfVectorizer(SelectStates_filt, max_features = 10000, decode_error = "replace", max_df=.9,min_df=.10)
+#CA_tfidf = TfidfVectorizer(CA_filt, max_features = 10000, decode_error = "replace", max_df=.9,min_df=.10)
+#NV_tfidf = TfidfVectorizer(NV_filt, max_features = 10000, decode_error = "replace", max_df=.9,min_df=.10)
+#AR_tfidf = TfidfVectorizer(AR_filt, max_features = 10000, decode_error = "replace", max_df=.9,min_df=.10)
+#NM_tfidf = TfidfVectorizer(NM_filt, max_features = 10000, decode_error = "replace", max_df=.9,min_df=.10)
+#NC_tfidf = TfidfVectorizer(NC_filt, max_features = 10000, decode_error = "replace", max_df=.9,min_df=.10)
 
 print("Tfidf Vectors Complete.")
 # %time
+
 
 ##Document Similarity Matrices
 
 #All_matrix = All_tfidf.fit_transform(ufoset['text'].values.astype('U'))
 SelectStates_matrix = SelectStates_tfidf.fit_transform(encounters['text'].values.astype('U'))
-CA_matrix = CA_tfidf.fit_transform(CA_encounters['text'].values.astype('U'))
-CA_matrix = CA_tfidf.fit_transform(CA_encounters['text'].values.astype('U'))
-NV_matrix = NV_tfidf.fit_transform(NV_encounters['text'].values.astype('U'))
-AR_matrix = AR_tfidf.fit_transform(AR_encounters['text'].values.astype('U'))
-NM_matrix = NM_tfidf.fit_transform(NM_encounters['text'].values.astype('U'))
-NC_matrix = NC_tfidf.fit_transform(NC_encounters['text'].values.astype('U'))
+#CA_matrix = CA_tfidf.fit_transform(CA_encounters['text'].values.astype('U'))
+#NV_matrix = NV_tfidf.fit_transform(NV_encounters['text'].values.astype('U'))
+#AR_matrix = AR_tfidf.fit_transform(AR_encounters['text'].values.astype('U'))
+#NM_matrix = NM_tfidf.fit_transform(NM_encounters['text'].values.astype('U'))
+#NC_matrix = NC_tfidf.fit_transform(NC_encounters['text'].values.astype('U'))
+
 
 print("Similarity Matrices Complete.")
 # %time
@@ -280,11 +281,11 @@ print("Similarity Matrices Complete.")
 #Get term names
 #All_terms = All_tfidf.get_feature_names()
 select_terms = SelectStates_tfidf.get_feature_names()
-CA_terms = CA_tfidf.get_feature_names()
-NV_terms = NV_tfidf.get_feature_names()
-AR_terms = AR_tfidf.get_feature_names()
-NM_terms = NM_tfidf.get_feature_names()
-NC_terms = NC_tfidf.get_feature_names()
+#CA_terms = CA_tfidf.get_feature_names()
+#NV_terms = NV_tfidf.get_feature_names()
+#AR_terms = AR_tfidf.get_feature_names()
+#NM_terms = NM_tfidf.get_feature_names()
+#NC_terms = NC_tfidf.get_feature_names()
 
 print("Term Names Complete.")
 # %time
@@ -293,11 +294,11 @@ print("Term Names Complete.")
 
 #All_dist = 1 - cosine_similarity(All_matrix)
 SelectStates_dist = 1 - cosine_similarity(SelectStates_matrix)
-CA_dist = 1 - cosine_similarity(CA_matrix)
-NV_dist = 1 - cosine_similarity(NV_matrix)
-AR_dist = 1 - cosine_similarity(AR_matrix)
-NM_dist = 1 - cosine_similarity(NM_matrix)
-NC_dist = 1 - cosine_similarity(NC_matrix)
+#CA_dist = 1 - cosine_similarity(CA_matrix)
+#NV_dist = 1 - cosine_similarity(NV_matrix)
+#AR_dist = 1 - cosine_similarity(AR_matrix)
+#NM_dist = 1 - cosine_similarity(NM_matrix)
+#NC_dist = 1 - cosine_similarity(NC_matrix)
 
 print("Pairwise Complete Distances Calculated")
 # %time
@@ -306,11 +307,11 @@ print("Pairwise Complete Distances Calculated")
 
 #All_kmeans = KMeans(n_clusters=5,random_state =0).fit(All_matrix)
 SelectStates_kmeans = KMeans(n_clusters=5,random_state =0).fit(SelectStates_matrix)
-CA_kmeans = KMeans(n_clusters=5,random_state =0).fit(CA_matrix)
-NV_kmeans = KMeans(n_clusters=5,random_state =0).fit(NV_matrix)
-AR_kmeans = KMeans(n_clusters=5,random_state =0).fit(AR_matrix)
-NM_kmeans = KMeans(n_clusters=5,random_state =0).fit(NM_matrix)
-NC_kmeans = KMeans(n_clusters=5,random_state =0).fit(NC_matrix)
+#CA_kmeans = KMeans(n_clusters=5,random_state =0).fit(CA_matrix)
+#NV_kmeans = KMeans(n_clusters=5,random_state =0).fit(NV_matrix)
+#AR_kmeans = KMeans(n_clusters=5,random_state =0).fit(AR_matrix)
+#NM_kmeans = KMeans(n_clusters=5,random_state =0).fit(NM_matrix)
+#NC_kmeans = KMeans(n_clusters=5,random_state =0).fit(NC_matrix)
 
 print("K-Means Clustering Complete")
 # %time
@@ -319,14 +320,16 @@ print("K-Means Clustering Complete")
 
 #All_States_clusters = All_kmeans.labels_.tolist()
 SelectStates_clusters = SelectStates_kmeans.labels_.tolist()
-CA_clusters = CA_kmeans.labels_.tolist()
-NV_clusters = NV_kmeans.labels_.tolist()
-AR_clusters = AR_kmeans.labels_.tolist()
-NM_clusters = NM_kmeans.labels_.tolist()
-NC_clusters = NC_kmeans.labels_.tolist()
+#CA_clusters = CA_kmeans.labels_.tolist()
+#NV_clusters = NV_kmeans.labels_.tolist()
+#AR_clusters = AR_kmeans.labels_.tolist()
+#NM_clusters = NM_kmeans.labels_.tolist()
+#NC_clusters = NC_kmeans.labels_.tolist()
 
 print("Cluster Labels Complete.")
 # %time
+
+Select_FlatTerms = flatten(select_terms)
 
 Select_State = {'index': SelectStates_clusters,'clusters': SelectStates_clusters, 'State': encounters['state'], "Text":encounters['text'] }
 Select_Frame = pd.DataFrame(Select_State)
@@ -334,13 +337,7 @@ Select_Frame = Select_Frame.set_index('index')
 
 Select_Frame['clusters'].value_counts() #number of 'encounters' per cluster (clusters from 0 to 4)
 
-order_centroids[1,:5]
 
-SelectStates_clusters[36817]
-
-Select_vocab.items()
-
-from __future__ import print_function
 
 print("Top terms per cluster:")
 print("")
@@ -378,27 +375,65 @@ mds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
 pos = mds.fit_transform(SelectStates_dist)  # shape (n_components, n_samples)
 
 xs, ys = pos[:, 0], pos[:, 1]
-print()
-print()
+print("")
+print("")
 
-"""# Experimental Code for Figureing out Next Steps:"""
 
-#Flattening List of Lists of Each State - Might be useful for State Comparisons
-All_flat = flatten(All_filt)
-CA_flat = flatten(CA_filt)
-NV_flat = flatten(NV_filt)
-AR_flat = flatten(AR_filt)
-NM_flat = flatten(NM_filt)
 
-print("Flattened...")
-# %time
+#set up colors per clusters using a dict
+cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e'}
 
-#Creates a list of lists of our 4 states 
-States = [CA_flat,NV_flat,AR_flat,NM_flat]
-# %time
+#set up cluster names using a dict
+cluster_names = {0: 'Family, home, war', 
+                 1: 'Police, killed, murders', 
+                 2: 'Father, New York, brothers', 
+                 3: 'Dance, singing, love', 
+                 4: 'Killed, soldiers, captain'}
 
-#Basic Exploration of Word Counts
-Counter(All_flat).most_common(50)
-# %time
+#create data frame that has the result of the MDS plus the cluster numbers and titles
+df = pd.DataFrame(dict(x=xs, y=ys, label=SelectStates_clusters, state=encounters['state'])) 
 
-All_kmeans.shape()
+#group by cluster
+groups = df.groupby('label')
+
+
+# set up plot
+fig, ax = plt.subplots(figsize=(17, 9)) # set size
+ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
+
+#iterate through groups to layer the plot
+#note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return the appropriate color/label
+for name, group in groups:
+    ax.plot(group.x, group.y, marker='o', linestyle='', ms=12, 
+            label=cluster_names[name], color=cluster_colors[name], 
+            mec='none')
+    ax.set_aspect('auto')
+    ax.tick_params(\
+        axis= 'x',          # changes apply to the x-axis
+        which='both',      # both major and minor ticks are affected
+        bottom='off',      # ticks along the bottom edge are off
+        top='off',         # ticks along the top edge are off
+        labelbottom='off')
+    ax.tick_params(\
+        axis= 'y',         # changes apply to the y-axis
+        which='both',      # both major and minor ticks are affected
+        left='off',      # ticks along the bottom edge are off
+        top='off',         # ticks along the top edge are off
+        labelleft='off')
+    
+ax.legend(numpoints=1)  #show legend with only 1 point
+
+#add label in x,y position with the label as the film title
+for i in range(len(df)):
+    ax.text(df.ix[i]['x'], df.ix[i]['y'], df.ix[i]['title'], size=8)  
+
+    
+    
+plt.show() #show the plot
+
+#uncomment the below to save the plot if need be
+#plt.savefig('clusters_small_noaxes.png', dpi=200)
+
+
+
+
