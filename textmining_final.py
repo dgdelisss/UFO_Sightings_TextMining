@@ -37,6 +37,7 @@ import string
 import wordcloud
 import os
 import pylab as pl
+import requests
 
 # %time
 
@@ -59,6 +60,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from os import path
 from PIL import Image
+from io import BytesIO
 
 # %time
 
@@ -151,12 +153,13 @@ def lemmatizer(term_vec):
 
 ##Basic Word Cloud Function
 
-def show_wordcloud(data, title = None):
+def show_wordcloud(data, title = None, mask = None):
     wordcloud = WordCloud(
         background_color='white',
         max_words=50,
         max_font_size=40, 
         scale=3,
+        mask = mask,
         random_state=1 # chosen at random by flipping a coin; it was heads
     ).generate(str(data))
 
@@ -168,6 +171,7 @@ def show_wordcloud(data, title = None):
 
     plt.imshow(wordcloud)
     plt.show()
+
 
 def stateshape(list):
   
@@ -183,6 +187,46 @@ def stateshape(list):
     shapelist.append(state_shapes[i])
 
   return(shapelist)
+
+##Color Dictionary Function Based on Cluster #s
+
+def colordict(num):
+  color_dict = {}
+  if num <= 7:
+    color_dict[0] = "#1b9e77"
+    color_dict[1] = "#d95f02"
+    color_dict[2] = "#7570b3"
+    color_dict[3] = "#e7298a"
+    color_dict[4] = "#66a61e"
+    color_dict[5] = "#e6ab02"
+    color_dict[6] = "#a6761d"  
+    color_dict[7] = "#666666"  
+  elif num == 8:
+    color_dict[0] = "#e41a1c"
+    color_dict[1] = "#377eb8"
+    color_dict[2] = "#4daf4a"
+    color_dict[3] = "#984ea3"
+    color_dict[4] = "#ff7f00"
+    color_dict[5] = "#ffff33"
+    color_dict[6] = "#a65628"
+    color_dict[7] = "#f781bf"
+    color_dict[8] = "#999999"  
+  elif num >= 9:
+    color_dict[0] = "#a6cee3"
+    color_dict[1] = "#1f78b4"
+    color_dict[2] = "#b2df8a"
+    color_dict[3] = "#33a02c"
+    color_dict[4] = "#fb9a99"
+    color_dict[5] = "#e31a1c"
+    color_dict[6] = "#fdbf6f"
+    color_dict[7] = "#ff7f00"
+    color_dict[8] = "#cab2d6"
+    color_dict[9] = "#6a3d9a"
+    color_dict[10] = "#ffff99"
+    color_dict[11] = "#b15928"
+    
+  return(color_dict)
+
 
 """# Initial Data Importation and Cleaning:"""
 
@@ -339,7 +383,7 @@ UFO_frame = pd.DataFrame(UFO_dict, index = [SelectStates_clusters] , columns = [
 # %time
 
 ## Document/Cluster Breakdown
-UFO_frame['cluster'].value_counts()
+print(UFO_frame['cluster'].value_counts())
 
 # %time
 
@@ -362,16 +406,19 @@ for num, centroid in enumerate(common_words):
 
 
 #set up colors per clusters using a dict
-cluster_colors = {0: '#8dd3c7', 1: '#ffffb3', 2: '#bebada', 3: '#fb8072', 4: '#80b1d3', 5:'#fdb462',  6:'#b3de69', 7:'#fccde5', 8: '#d9d9d9' ,9: '#bc80bd'}
+cluster_colors = colordict(num_clusters)
 
 #set up custom cluster names
-#cluster_names = {0 : 'one moving bright object second appeared',
-#                1 : 'witness provides information remain totally anonymous',
-#                2 : 'object moving high speed flying direction',
-#                3 : 'large light craft shaped aircraft sound',
-#                4 : 'bright light object moving around'}
+custom_clusters = {0 : 'one moving bright object second appeared',
+                1 : 'witness provides information remain totally anonymous',
+                2 : 'object moving high speed flying direction',
+                3 : 'large light craft shaped aircraft sound',
+                4 : 'bright light object moving around'}
 
-# %time
+#Uncomment Below to apply custom names:
+#cluster_names = custom_clusters
+
+#%time
 
 #PCA 2 components
 
@@ -393,17 +440,29 @@ x_s, y_s, z_s = pos[:, 0], pos[:, 1],pos[:, 2]
 
 # %time
 
-## 2D PLOT
-
-#some ipython magic to show the matplotlib plots inline
-# %matplotlib inline 
 
 #create data frame that has the result of the MDS plus the cluster numbers and titles
-df = pd.DataFrame(dict(x=xs, y=ys, label=SelectStates_clusters, markers= shapes, state=encounters['state'])) 
+df = pd.DataFrame(dict(x=x_s, y=y_s, z=z_s, label=SelectStates_clusters, state=encounters['state'])) 
+
+#Exporting Final x,y,z dataframe
+filepath = "~/Documents/GitHub/Blue2_HW6_UFO_Text/"   #Update as needed
+file = filepath + "ufo_plot_data.csv"
+
+df.to_csv(file)
 
 #group by cluster
 groups = df.groupby('label')
 
+
+## State/Cluster Bar Plot
+
+StateChart = pd.crosstab(df.label, df.state).rename_axis('cluster')
+print(StateChart)
+
+## 2D PLOT
+
+#some ipython magic to show the matplotlib plots inline
+# %matplotlib inline 
 
 # set up plot
 fig, ax = plt.subplots(figsize=(30, 20)) # set size
@@ -454,13 +513,6 @@ from mpl_toolkits.mplot3d import Axes3D
 # %matplotlib notebook
 #%matplotlib inline 
 
-#create data frame that has the result of the MDS plus the cluster numbers and titles
-df = pd.DataFrame(dict(x=x_s, y=y_s, z=z_s, label=SelectStates_clusters, markers=shapes, state=encounters['state'])) 
-
-#group by cluster
-groups = df.groupby('label')
-
-
 # set up plot
 fig = plt.figure(figsize=(10,10))
 #ax = Axes3D(fig)
@@ -492,9 +544,6 @@ ax.legend(numpoints=1)  #show legend with only 1 point
 #for i in range(len(df)):
 #    ax.text(df.iloc[i]['x'], df.iloc[i]['y'], df.iloc[i]['z'], df.iloc[i]['state'], size=8)  
 
- 
-    
-
 for angle in range(0, 360):
     ax.view_init(30, angle)
     plt.draw()
@@ -502,3 +551,17 @@ for angle in range(0, 360):
 
 # %time
     
+##WORD CLOUDS
+    
+#Basic
+show_wordcloud(SelectStates_lem)
+
+
+#Masked
+response = requests.get("https://raw.githubusercontent.com/dgdelisss/Blue2_HW6_UFO_Text/master/ufo_mask.png")
+img = Image.open(BytesIO(response.content))
+img_mask = np.array(img)
+
+show_wordcloud(SelectStates_lem, mask=img_mask)
+
+## PLOTS
