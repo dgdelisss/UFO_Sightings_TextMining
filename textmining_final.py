@@ -57,6 +57,9 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet as wn
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from os import path
+from PIL import Image
+
 # %time
 
 #Downloading features from nltk
@@ -293,20 +296,20 @@ print("Pairwise Complete Distances Calculated")
 
 #Cluster Selection Elbow Curve
 
-Nc = range(1, 20)
+#Nc = range(1, 20)
 
-kmeans = [KMeans(n_clusters=i) for i in Nc]
-kmeans
+#kmeans = [KMeans(n_clusters=i) for i in Nc]
+#kmeans
 
-score = [kmeans[i].fit(SelectStates_matrix).score(SelectStates_matrix) for i in range(len(kmeans))]
-score
+#score = [kmeans[i].fit(SelectStates_matrix).score(SelectStates_matrix) for i in range(len(kmeans))]
+#score
 
-pl.plot(Nc,score)
-pl.xlabel('Number of Clusters')
-pl.ylabel('Score')
-pl.title('Elbow Curve')
+#pl.plot(Nc,score)
+#pl.xlabel('Number of Clusters')
+#pl.ylabel('Score')
+#pl.title('Elbow Curve')
 
-pl.show()
+#pl.show()
 
 # %time
 
@@ -497,10 +500,5 @@ for angle in range(0, 360):
     plt.draw()
     plt.pause(.001)   
 
-#plt.show() #show the plot
-
-#uncomment the below to save the plot if need be
-#plt.savefig('clusters_small_noaxes.png', dpi=200)
-
 # %time
-
+    
