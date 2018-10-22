@@ -58,9 +58,12 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet as wn
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D
 from os import path
 from PIL import Image
 from io import BytesIO
+import scipy.stats as scs
+from scipy import sparse
 
 # %time
 
@@ -153,10 +156,12 @@ def lemmatizer(term_vec):
 
 ##Basic Word Cloud Function
 
-def show_wordcloud(data, title = None, mask = None):
-    wordcloud = WordCloud(
+def show_wordcloud(data, title = None, mask = None, max_words = 500):
+    
+    
+    cloud = WordCloud(
         background_color='white',
-        max_words=50,
+        max_words=max_words,
         max_font_size=40, 
         scale=3,
         mask = mask,
@@ -169,24 +174,9 @@ def show_wordcloud(data, title = None, mask = None):
         fig.suptitle(title, fontsize=20)
         fig.subplots_adjust(top=2.3)
 
-    plt.imshow(wordcloud)
+    plt.imshow(cloud)
     plt.show()
 
-
-def stateshape(list):
-  
-  shapelist = []
-  
-  state_shapes = {"CA": 'o',
-                  "NV": 'v', 
-                  "AR": '^', 
-                  "NM": "<", 
-                  "NC": ">"}
-  
-  for i in list:
-    shapelist.append(state_shapes[i])
-
-  return(shapelist)
 
 ##Color Dictionary Function Based on Cluster #s
 
@@ -227,6 +217,21 @@ def colordict(num):
     
   return(color_dict)
 
+def ChiSquareChart(obs,exp):
+                       
+    cols = obs.columns
+    axis_name = obs.axes[1].name
+    
+    df = pd.DataFrame()
+    
+    for i in cols:
+        new_row =(((obs[i]-exp[i])**2)/exp[i])
+        new_row = ["{:0.3e}".format(x) for x in new_row ]
+        
+        df[i] = new_row
+        
+    df = df.rename_axis(axis_name, axis="columns")
+    return(df)
 
 """# Initial Data Importation and Cleaning:"""
 
@@ -238,6 +243,7 @@ ufoset = pd.read_csv('https://query.data.world/s/t5l7slkbhurybmuxkfgncobbaknf7i'
 
 ## ALTER FOR DIFFERENT STATES HERE ##
 states = ["CA","NV","AR","NM", "NC"]
+
 subset_ufoset = ufoset.loc[ufoset['state'].isin(states)]
 
 encounters = subset_ufoset[['text','state']]
@@ -246,8 +252,6 @@ encounters = subset_ufoset[['text','state']]
 SelectStates_Xvect = encounters['text'].values.tolist()
 SelectStates_Svect = encounters['state'].values.tolist()
 
-
-shapes = stateshape(encounters['state'].values.tolist())
 
 print("Lists created.")
 # %time
@@ -329,12 +333,33 @@ select_terms = SelectStates_tfidf.get_feature_names()
 print("Term Names Complete.")
 # %time
 
-#Pairwise Similaritiy Distances Calculation
+#Cosine Similaritiy -- Sometimes Memory Intensive  (Broken into Chunks)
 
-SelectStates_dist = 1 - cosine_similarity(SelectStates_matrix)
+#Change chunk_size to control resource consumption and speed
+#Higher chunk_size means more memory/RAM needed but also faster 
 
-print("Pairwise Complete Distances Calculated")
-# %time
+chunk_size = round(5000/len(states))
+matrix_len = SelectStates_matrix.shape[0] # Not sparse numpy.ndarray
+
+def similarity_cosine_by_chunk(start, end):
+    if end > matrix_len:
+        end = matrix_len
+    return cosine_similarity(X=SelectStates_matrix[start:end], Y=SelectStates_matrix) # scikit-learn function
+
+
+for chunk_start in range(0, matrix_len, chunk_size):
+    cosine_similarity_chunk = similarity_cosine_by_chunk(chunk_start, chunk_start+chunk_size)
+    if chunk_start == 0: SelectStates_cosine = cosine_similarity_chunk
+    else: SelectStates_cosine = np.concatenate((SelectStates_cosine, cosine_similarity_chunk), axis=0)
+
+print("Cosine Similarity Calculated")
+
+
+##Creates Inverse Similaritiy Distance Matrix
+SelectStates_dist = 1 - SelectStates_cosine
+
+print("Inverse Similaritiy Distance Matrix Calculated")
+#%time
 
 ##########SLOW#################
 
@@ -360,7 +385,7 @@ print("Pairwise Complete Distances Calculated")
 ## KMeans Clustering
 
 ##ALTER FOR DIFFERENT CLUSTERING HERE##
-num_clusters = 5
+num_clusters = 4
 
 SelectStates_kmeans = KMeans(num_clusters,random_state =0).fit(SelectStates_matrix)
 
@@ -383,6 +408,7 @@ UFO_frame = pd.DataFrame(UFO_dict, index = [SelectStates_clusters] , columns = [
 # %time
 
 ## Document/Cluster Breakdown
+print("")
 print(UFO_frame['cluster'].value_counts())
 
 # %time
@@ -394,11 +420,22 @@ cn = 0
 
 for num, centroid in enumerate(common_words):
     cluster_sum = str(num) + ' : ' + ', '.join(select_terms[word] for word in centroid)
-    print(cluster_sum)
     cluster_names[cn] = cluster_sum
     cn += 1
     
 # %time
+    
+##Most Common 15 words per cluster 
+
+common_words = SelectStates_kmeans.cluster_centers_.argsort()[:,-1:-16:-1]
+
+for num, centroid in enumerate(common_words):
+    cluster_sum = str(num) + ' : ' + ', '.join(select_terms[word] for word in centroid)
+    print(cluster_sum)
+    #cluster_names[cn] = cluster_sum
+    #cn += 1
+print("")    
+#%time
 
 """# Visualizations"""
 
@@ -410,13 +447,13 @@ cluster_colors = colordict(num_clusters)
 
 #set up custom cluster names
 custom_clusters = {0 : 'one moving bright object second appeared',
-                1 : 'witness provides information remain totally anonymous',
+                1 : 'witness provides information remain totally ',
                 2 : 'object moving high speed flying direction',
-                3 : 'large light craft shaped aircraft sound',
-                4 : 'bright light object moving around'}
+                3 : 'craft, ufo, object, sighting, moving around',
+                4 : 'light, bright, red, white, orange'}
 
 #Uncomment Below to apply custom names:
-#cluster_names = custom_clusters
+cluster_names = custom_clusters
 
 #%time
 
@@ -454,10 +491,35 @@ df.to_csv(file)
 groups = df.groupby('label')
 
 
-## State/Cluster Bar Plot
+## State/Cluster Analysis Plot
 
-StateChart = pd.crosstab(df.label, df.state).rename_axis('cluster')
+## State/Cluster Analysis Plot
+StateChart = pd.crosstab(df.state,df.label).rename_axis('state').rename_axis("clusters", axis="columns")
+print("OBSERVED VALUES")
 print(StateChart)
+print("")
+
+chi2, p, dof, ex = scs.chi2_contingency(StateChart)
+
+print("")
+print("EXPECTED VALUES")
+Exp_Frame=pd.DataFrame(np.round(ex,1),index =StateChart.index[0:]).rename_axis("clusters", axis="columns")
+print(Exp_Frame)
+print("")
+print("ChiSqr:",round(chi2,3)," P value:", format(p, '.3e'))
+print("")
+
+print("CHI SQUARED VALUES")
+Chi_Frame = ChiSquareChart(StateChart,Exp_Frame)
+print(Chi_Frame)
+
+#Exporting Final x,y,z dataframe
+filepath = "~/Documents/GitHub/Blue2_HW6_UFO_Text/"   #Update as needed
+file = filepath + "cross_tabulations.csv"
+
+StateChart.to_csv(file)
+
+
 
 ## 2D PLOT
 
@@ -474,7 +536,7 @@ for name, group in groups:
   
     mk_state = group.state.values.tolist()
     
-    ax.plot(group.x, group.y, marker="o", linestyle='', ms=12, 
+    ax.plot(group.x, group.y, marker="o", linestyle='', ms=5, 
             label=cluster_names[name], color=cluster_colors[name], 
             mec='none')
     ax.set_aspect('auto')
@@ -507,7 +569,6 @@ plt.show() #show the plot
 # %time
 
 ## 3D PLOT
-from mpl_toolkits.mplot3d import Axes3D
 
 #Jupyter plot options
 # %matplotlib notebook
@@ -537,6 +598,12 @@ for name, group in groups:
         left=False,      # ticks along the bottom edge are off
         top=False,         # ticks along the top edge are off
         labelleft=False)
+    ax.tick_params(\
+        axis= 'z',         # changes apply to the y-axis
+        which='both',      # both major and minor ticks are affected
+        left=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelleft=False)
     
 ax.legend(numpoints=1)  #show legend with only 1 point
 
@@ -544,12 +611,13 @@ ax.legend(numpoints=1)  #show legend with only 1 point
 #for i in range(len(df)):
 #    ax.text(df.iloc[i]['x'], df.iloc[i]['y'], df.iloc[i]['z'], df.iloc[i]['state'], size=8)  
 
-for angle in range(0, 360):
-    ax.view_init(30, angle)
-    plt.draw()
-    plt.pause(.001)   
+#for angle in range(0, 360):
+#    ax.view_init(30, angle)
+#    plt.draw()
+#    plt.pause(.001)   
 
 # %time
+
     
 ##WORD CLOUDS
     
@@ -558,10 +626,10 @@ show_wordcloud(SelectStates_lem)
 
 
 #Masked
-response = requests.get("https://raw.githubusercontent.com/dgdelisss/Blue2_HW6_UFO_Text/master/ufo_mask.png")
+response = requests.get("https://raw.githubusercontent.com/dgdelisss/UFO_Sightings_TextMining/master/ufo_mask.png")
 img = Image.open(BytesIO(response.content))
 img_mask = np.array(img)
 
-show_wordcloud(SelectStates_lem, mask=img_mask)
+show_wordcloud(flatten(SelectStates_lem), mask=img_mask,max_words=200)
 
 ## PLOTS
