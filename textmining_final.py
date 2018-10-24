@@ -38,6 +38,7 @@ import wordcloud
 import os
 import pylab as pl
 import requests
+import random
 
 # %time
 
@@ -64,6 +65,8 @@ from PIL import Image
 from io import BytesIO
 import scipy.stats as scs
 from scipy import sparse
+from sklearn import metrics
+from scipy.spatial.distance import cdist
 
 # %time
 
@@ -77,6 +80,13 @@ nltk.download('wordnet')
 
 #Flatten Function (This will collapse a list of lists into just one list)
 flatten = lambda l: [item for sublist in l for item in sublist]
+
+#Flattens an Entire list into a large string
+def pancake(list):
+    pancake = ""
+    for i in list:
+        pancake = pancake + " " + str(i)
+    return(pancake)
 
 #Unicoder
 
@@ -158,11 +168,10 @@ def lemmatizer(term_vec):
 
 def show_wordcloud(data, title = None, mask = None, max_words = 500):
     
-    
     cloud = WordCloud(
         background_color='white',
         max_words=max_words,
-        max_font_size=40, 
+        max_font_size=50, 
         scale=3,
         mask = mask,
         random_state=1 # chosen at random by flipping a coin; it was heads
@@ -173,11 +182,9 @@ def show_wordcloud(data, title = None, mask = None, max_words = 500):
     if title: 
         fig.suptitle(title, fontsize=20)
         fig.subplots_adjust(top=2.3)
-
+ 
     plt.imshow(cloud)
     plt.show()
-
-
 ##Color Dictionary Function Based on Cluster #s
 
 def colordict(num):
@@ -275,7 +282,7 @@ print("Term Vectors  Complete.")
 # %time
 
 stopword = nltk.corpus.stopwords.words('english')
-custom_words = ['summary','SUMMARY',"'","-","saw", "like", "see", "could", "looked", "seen", "foot", "would"]
+custom_words = ['summary','SUMMARY',"'","-","saw", "like", "see", "could", "looked", "seen", "foot", "would", "nuforc"]
 stopword += custom_words
 
 print("Stop Words Created.")
@@ -322,13 +329,17 @@ SelectStates_Uni = Unicoder(SelectStates_lem)
 #Creates Similarity Matrix
 SelectStates_matrix = SelectStates_tfidf.fit_transform(SelectStates_Uni)
 
-
 print("Similarity Matrices Complete.")
+
+
+
 # %time
+
 
 #Get term names
 
 select_terms = SelectStates_tfidf.get_feature_names()
+
 
 print("Term Names Complete.")
 # %time
@@ -338,7 +349,7 @@ print("Term Names Complete.")
 #Change chunk_size to control resource consumption and speed
 #Higher chunk_size means more memory/RAM needed but also faster 
 
-chunk_size = round(5000/len(states))
+chunk_size = round(2500/len(states))
 matrix_len = SelectStates_matrix.shape[0] # Not sparse numpy.ndarray
 
 def similarity_cosine_by_chunk(start, end):
@@ -361,26 +372,6 @@ SelectStates_dist = 1 - SelectStates_cosine
 print("Inverse Similaritiy Distance Matrix Calculated")
 #%time
 
-##########SLOW#################
-
-#Cluster Selection Elbow Curve
-
-#Nc = range(1, 20)
-
-#kmeans = [KMeans(n_clusters=i) for i in Nc]
-#kmeans
-
-#score = [kmeans[i].fit(SelectStates_matrix).score(SelectStates_matrix) for i in range(len(kmeans))]
-#score
-
-#pl.plot(Nc,score)
-#pl.xlabel('Number of Clusters')
-#pl.ylabel('Score')
-#pl.title('Elbow Curve')
-
-#pl.show()
-
-# %time
 
 ## KMeans Clustering
 
@@ -527,7 +518,7 @@ StateChart.to_csv(file)
 # %matplotlib inline 
 
 # set up plot
-fig, ax = plt.subplots(figsize=(30, 20)) # set size
+fig, ax = plt.subplots(figsize=(20, 15)) # set size
 ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
 
 #iterate through groups to layer the plot
@@ -536,7 +527,7 @@ for name, group in groups:
   
     mk_state = group.state.values.tolist()
     
-    ax.plot(group.x, group.y, marker="o", linestyle='', ms=5, 
+    ax.plot(group.x, group.y, marker="o", linestyle='', ms=4, 
             label=cluster_names[name], color=cluster_colors[name], 
             mec='none')
     ax.set_aspect('auto')
@@ -575,6 +566,8 @@ plt.show() #show the plot
 #%matplotlib inline 
 
 # set up plot
+
+
 fig = plt.figure(figsize=(10,10))
 #ax = Axes3D(fig)
 ax = fig.add_subplot(111, projection='3d')
@@ -611,25 +604,79 @@ ax.legend(numpoints=1)  #show legend with only 1 point
 #for i in range(len(df)):
 #    ax.text(df.iloc[i]['x'], df.iloc[i]['y'], df.iloc[i]['z'], df.iloc[i]['state'], size=8)  
 
-#for angle in range(0, 360):
-#    ax.view_init(30, angle)
-#    plt.draw()
-#    plt.pause(.001)   
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.animation as animation
+
+for name, group in groups:
+    ax.plot(group.x, group.y, group.z, marker="o", linestyle='', ms=3, 
+            label=cluster_names[name], color=cluster_colors[name], 
+            mec='none')
+    ax.set_aspect('auto')
+    ax.tick_params(\
+        axis= 'x',          # changes apply to the x-axis
+        which='both',      # both major and minor ticks are affected
+        bottom=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelbottom=False)
+    ax.tick_params(\
+        axis= 'y',         # changes apply to the y-axis
+        which='both',      # both major and minor ticks are affected
+        left=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelleft=False)
+    ax.tick_params(\
+        axis= 'z',         # changes apply to the y-axis
+        which='both',      # both major and minor ticks are affected
+        left=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelleft=False)
+    
+ax.legend(numpoints=1)  #show legend with only 1 point
+
+for angle in range(0, 360):
+    ax.view_init(30, angle)
+    plt.draw()
+    plt.pause(.001)   
 
 # %time
 
+#3D PLOT
     
+def rotate(angle):
+    ax.view_init(azim=angle)
+
+rot_animation = animation.FuncAnimation(fig, rotate, frames=np.arange(0, 362, 2), interval=100)
+rot_animation.save('basic_animation', fps=30, extra_args=['-vcodec', 'libx264'])
+
+plt.show()
+
+# save the animation as an mp4.  This requires ffmpeg or mencoder to be
+# installed.  The extra_args ensure that the x264 codec is used, so that
+# the video can be embedded in html5.  You may need to adjust this for
+# your system: for more information, see
+# http://matplotlib.sourceforge.net/api/animation_api.html
+anim.save('basic_animation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+
+
 ##WORD CLOUDS
     
-#Basic
-show_wordcloud(SelectStates_lem)
+flat_vect = flatten(SelectStates_lem)
+string_vect = StringOnly(flat_vect)
 
+#long_string = pancake(string_vect)
+
+long_string = " ".join(str(x) for x in string_vect)
+
+#Basic
+show_wordcloud(long_string)
 
 #Masked
 response = requests.get("https://raw.githubusercontent.com/dgdelisss/UFO_Sightings_TextMining/master/ufo_mask.png")
 img = Image.open(BytesIO(response.content))
 img_mask = np.array(img)
 
-show_wordcloud(flatten(SelectStates_lem), mask=img_mask,max_words=200)
+show_wordcloud(long_string, mask=img_mask,max_words=200)
 
-## PLOTS
+
