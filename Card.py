@@ -39,19 +39,33 @@ def minimize_card_reissues_and_bins(six_digit_bins, eight_digit_bins, cards_per_
     result = {
         "status": pulp.LpStatus[lp_problem.status],
         "assignments": [],
-        "bins_used": []
+        "bins_used": [],
+        "total_reissuance_cost": 0,
+        "total_active_bin_cost": 0,
+        "total_cards_assigned": []
     }
+
+    total_reissuance_cost = 0
+    total_active_bin_cost = 0
+    total_cards_assigned = {eight_digit_bin: 0 for eight_digit_bin in eight_digit_bins}
 
     # Print the assignment of 6-digit bins to 8-digit bins
     for i in range(num_6_digit_bins):
         for j in range(num_8_digit_bins):
             if pulp.value(x[i, j]) > 0.5:
                 result["assignments"].append((six_digit_bins[i], eight_digit_bins[j]))
+                total_reissuance_cost += cost_per_reissuance * (cards_per_six_digit_bin[i] - expiring_cards[i])
+                total_cards_assigned[eight_digit_bins[j]] += cards_per_six_digit_bin[i]
 
     # Print which 8-digit bins are used
     for j in range(num_8_digit_bins):
         if pulp.value(y[j]) > 0.5:
             result["bins_used"].append(eight_digit_bins[j])
+            total_active_bin_cost += cost_per_active_bin
+
+    result["total_reissuance_cost"] = total_reissuance_cost
+    result["total_active_bin_cost"] = total_active_bin_cost
+    result["total_cards_assigned"] = total_cards_assigned
 
     return result
 
@@ -71,3 +85,8 @@ print("Assignments:")
 for assignment in result["assignments"]:
     print(f"6-digit bin {assignment[0]} assigned to 8-digit bin {assignment[1]}")
 print("8-digit bins used:", result["bins_used"])
+print("Total Reissuance Cost:", result["total_reissuance_cost"])
+print("Total Active Bin Cost:", result["total_active_bin_cost"])
+print("Total Cards Assigned to Each Bin:")
+for bin, total_cards in result["total_cards_assigned"].items():
+    print(f"8-digit bin {bin}: {total_cards} cards")
