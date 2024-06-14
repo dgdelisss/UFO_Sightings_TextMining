@@ -1,6 +1,6 @@
 import pulp
 
-def minimize_card_reissues_and_bins(six_digit_bins, eight_digit_bins, cards_per_six_digit_bin, capacities_per_eight_digit_bin, expiring_in_next_year, cost_per_reissuance, cost_per_active_bin):
+def minimize_card_reissues_and_bins(six_digit_bins, eight_digit_bins, cards_per_six_digit_bin, capacities_per_eight_digit_bin, expiring_cards, cost_per_reissuance, cost_per_active_bin):
     # Number of 6-digit bins and 8-digit bins
     num_6_digit_bins = len(six_digit_bins)
     num_8_digit_bins = len(eight_digit_bins)
@@ -14,7 +14,7 @@ def minimize_card_reissues_and_bins(six_digit_bins, eight_digit_bins, cards_per_
 
     # Objective function: Minimize reissues and the number of bins used
     lp_problem += (
-        pulp.lpSum(cost_per_reissuance * cards_per_six_digit_bin[i] * x[i, j] * (1 - expiring_in_next_year[i]) for i in range(num_6_digit_bins) for j in range(num_8_digit_bins)) +
+        pulp.lpSum(cost_per_reissuance * (cards_per_six_digit_bin[i] - expiring_cards[i]) * x[i, j] for i in range(num_6_digit_bins) for j in range(num_8_digit_bins)) +
         cost_per_active_bin * pulp.lpSum(y[j] for j in range(num_8_digit_bins))
     )
 
@@ -60,11 +60,11 @@ six_digit_bins = [123456, 234567, 345678, 456789, 567890]
 eight_digit_bins = [12345678, 23456789, 34567890, 45678901, 56789012, 67890123, 78901234, 89012345, 90123456, 12345679]
 cards_per_six_digit_bin = [100, 200, 150, 180, 220]
 capacities_per_eight_digit_bin = [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
-expiring_in_next_year = [0, 1, 0, 1, 0]  # 1 means cards in the bin are expiring in the next year
+expiring_cards = [10, 50, 20, 30, 60]  # Number of cards expiring in the next year for each 6-digit bin
 cost_per_reissuance = 5  # Example cost per card reissuance
 cost_per_active_bin = 100  # Example cost per active bin
 
-result = minimize_card_reissues_and_bins(six_digit_bins, eight_digit_bins, cards_per_six_digit_bin, capacities_per_eight_digit_bin, expiring_in_next_year, cost_per_reissuance, cost_per_active_bin)
+result = minimize_card_reissues_and_bins(six_digit_bins, eight_digit_bins, cards_per_six_digit_bin, capacities_per_eight_digit_bin, expiring_cards, cost_per_reissuance, cost_per_active_bin)
 
 print("Status:", result["status"])
 print("Assignments:")
